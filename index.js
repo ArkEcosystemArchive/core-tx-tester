@@ -57,7 +57,7 @@ const config = {
     verbose: true,
     // defaults to random genesis seed node
     peer: undefined,
-    // defaults to schnorr signatures
+    // defaults to schnorr signatures if aip11 milestone is active, otherwise has no effect
     ecdsa: false,
     // defaults to a random passphrase
     passphrase: undefined,
@@ -275,17 +275,17 @@ const main = async (data) => {
                     }
                 }
 
-            } else if (type === Enums.TransactionType.MultiSignature) {
+            } else if (type === Enums.TransactionType.MultiSignature && Managers.configManager.getMilestone().aip11) {
                 for (const passphrase of config.multiSignature.asset.participants) {
                     transaction.participant(Identities.PublicKey.fromPassphrase(passphrase));
                 }
 
                 transaction.min(config.multiSignature.asset.min)
 
-            } else if (type === Enums.TransactionType.Ipfs) {
+            } else if (type === Enums.TransactionType.Ipfs && Managers.configManager.getMilestone().aip11) {
                 transaction.ipfsAsset(config.ipfs)
 
-            } else if (type === Enums.TransactionType.MultiPayment) {
+            } else if (type === Enums.TransactionType.MultiPayment && Managers.configManager.getMilestone().aip11) {
 
                 let payments;
                 if (!config.multiPayments || config.multiPayments.length === 0) {
@@ -304,9 +304,9 @@ const main = async (data) => {
                     transaction.addPayment(payment.recipientId, payment.amount);
                 }
 
-            } else if (type === Enums.TransactionType.DelegateResignation) {
+            } else if (type === Enums.TransactionType.DelegateResignation && Managers.configManager.getMilestone().aip11) {
 
-            } else if (type === Enums.TransactionType.HtlcLock) {
+            } else if (type === Enums.TransactionType.HtlcLock && Managers.configManager.getMilestone().aip11) {
                 transaction.recipientId(recipientId)
                 transaction.amount(config.amount);
 
@@ -316,35 +316,35 @@ const main = async (data) => {
                 }
 
                 transaction.htlcLockAsset(config.htlc.lock);
-            } else if (type === Enums.TransactionType.HtlcClaim) {
+            } else if (type === Enums.TransactionType.HtlcClaim && Managers.configManager.getMilestone().aip11) {
 
                 const claim = config.htlc.claim;
                 const lockTransactionId = claim.lockTransactionId || ((await retrieveTransaction(senderWallet.publicKey, 8))[0].id)
 
                 transaction.htlcClaimAsset({ ...claim, lockTransactionId});
 
-            } else if (type === Enums.TransactionType.HtlcRefund) {
+            } else if (type === Enums.TransactionType.HtlcRefund && Managers.configManager.getMilestone().aip11) {
                 const refund = config.htlc.refund;
                 const lockTransactionId = refund.lockTransactionId || ((await retrieveTransaction(senderWallet.publicKey, 8))[0].id)
 
                 transaction.htlcRefundAsset({ lockTransactionId });
-            } else if (type === 11) { // BusinessRegistration
+            } else if (type === 11 && Managers.configManager.getMilestone().aip11) { // BusinessRegistration
                 transaction.businessRegistrationAsset(config.business.registration);
 
-            } else if (type == 12) { // BusinessResignation
-            } else if (type == 13) { // BusinessUpdate
+            } else if (type == 12 && Managers.configManager.getMilestone().aip11) { // BusinessResignation
+            } else if (type == 13 && Managers.configManager.getMilestone().aip11) { // BusinessUpdate
                 transaction.businessUpdateAsset(config.business.update);
 
-            } else if (type == 14) { // BridgechainRegistration
+            } else if (type == 14 && Managers.configManager.getMilestone().aip11) { // BridgechainRegistration
                 transaction.bridgechainRegistrationAsset(config.bridgechain.registration);
 
-            } else if (type == 15) { // BridgechainResignation
+            } else if (type == 15 && Managers.configManager.getMilestone().aip11) { // BridgechainResignation
                 if (!config.bridgechain.resignation.bridgechainId) {
                     config.bridgechain.resignation.bridgechainId = await retrieveBridgechainId(senderKeys.publicKey)
                 }
                 transaction.businessResignationAsset(config.bridgechain.resignation.bridgechainId);
 
-            } else if (type === 16) { // BridgechainUpdate
+            } else if (type === 16 && Managers.configManager.getMilestone().aip11) { // BridgechainUpdate
                 if (!config.bridgechain.update.bridgechainId) {
                     config.bridgechain.update.bridgechainId = await retrieveBridgechainId(senderKeys.publicKey)
                 }
@@ -356,6 +356,8 @@ const main = async (data) => {
                 }
 
                 transaction.bridgechainUpdateAsset(config.bridgechain.update);
+            } else {
+                throw new Error("Version 2 not supported.");
             }
 
             let vendorField = config.vendorField.value;
