@@ -243,7 +243,6 @@ const main = async (data) => {
 
             const transaction = builder()
                 .nonce(nonce.toFixed())
-                .recipientId(recipientId)
                 .senderPublicKey(senderKeys.publicKey);
 
             if (config.fee) {
@@ -251,6 +250,7 @@ const main = async (data) => {
             }
 
             if (type === Enums.TransactionType.Transfer) {
+                transaction.recipientId(recipientId)
                 transaction.amount(config.amount);
                 transaction.expiration(config.expiration || 0);
 
@@ -307,6 +307,7 @@ const main = async (data) => {
             } else if (type === Enums.TransactionType.DelegateResignation) {
 
             } else if (type === Enums.TransactionType.HtlcLock) {
+                transaction.recipientId(recipientId)
                 transaction.amount(config.amount);
 
                 if (config.htlc.lock.expiration.type === Enums.HtlcLockExpirationType.EpochTimestamp) {
