@@ -1,5 +1,9 @@
 # Core Tx Tester
 
+<p align="center">
+    <img src="https://github.com/ArkEcosystem/core-tx-tester/blob/master/banner.png?raw=true" />
+</p>
+
 > A simple command line utility to create and broadcast transactions.
 
 [![License: MIT](https://badgen.now.sh/badge/license/MIT/green)](https://opensource.org/licenses/MIT)
@@ -137,7 +141,7 @@ const config = {
             bridgechainRepository: "https://github.com/ArkEcosystem/core",
         },
         update: {
-            // Each registration generates a unique id, 
+            // Each registration generates a unique id,
             // inspect wallet to get the bridgechainId or trust
             // this script to lookup the correct one for you.
             bridgechainId: undefined,
@@ -145,7 +149,7 @@ const config = {
             seedNodes: [],
         },
         resignation: {
-            // Each registration generates a unique id, 
+            // Each registration generates a unique id,
             // inspect wallet to get the bridgechainId or trust
             // this script to lookup the correct one for you.
             bridgechainId: undefined,
