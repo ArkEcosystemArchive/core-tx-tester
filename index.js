@@ -1,4 +1,4 @@
-const { Crypto, Enums, Utils, Managers, Transactions, Identities} = require("@arkecosystem/crypto");
+const { Crypto, Enums, Utils, Managers, Transactions, Identities } = require("@arkecosystem/crypto");
 
 const MagistrateCrypto = require("@arkecosystem/core-magistrate-crypto");
 
@@ -21,7 +21,6 @@ const assert = require("assert");
  * 
  * - At the bottom of this file are `testWallets` each with a balance of 475 DARK.
  * - If you encounter an error, just CTRL-C and restart.
- * - Use `ip:4003/api/node/debug` to view the log of a node (get the ip from the seeds at the bottom of this script)
  
  * Types:
  * 0 - Transfer
@@ -359,7 +358,7 @@ const main = async (data) => {
             }
 
             let vendorField = config.vendorField.value;
-            if (!vendorField && config.vendorField.random) {
+            if (!vendorField && config.vendorField.random && (type === 0 || type === 6 || type === 8)) {
                 vendorField = Math.random().toString();        
             }
 
@@ -401,14 +400,13 @@ const main = async (data) => {
             }
 
             const instance = transaction.build();
-            assert(instance.verify() || config.multiSignature.enabled);
-
             const payload = instance.toJson();
 
             if (config.verbose) {
                 console.log(`Transaction: ${JSON.stringify(payload, undefined, 4)}`);
             }
 
+            assert(instance.verify() || config.multiSignature.enabled);
             transactions.push(payload);
         }
 
