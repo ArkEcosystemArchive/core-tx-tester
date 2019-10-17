@@ -4,8 +4,8 @@
     "description": "A simple command line utility to create and broadcast transactions.",
     "scripts": {},
     "dependencies": {
-        "@arkecosystem/crypto": "^2.6.0-next.1",
-        "@arkecosystem/core-utils": "^2.6.0-next.1",
-        "@arkecosystem/core-magistrate-crypto": "^2.6.0-next.1"
+        "@arkecosystem/crypto": "2.6.0-next.2",
+        "@arkecosystem/core-utils": "2.6.0-next.2",
+        "@arkecosystem/core-magistrate-crypto": "2.6.0-next.2"
     }
 }
