@@ -360,9 +360,7 @@ const main = async (data) => {
                 }
 
                 if (!config.bridgechain.update.seedNodes.length) {
-                    for (let i = 0; i < 1; i++) {
-                        config.bridgechain.update.seedNodes.push(randomSeed())
-                    }
+                    config.bridgechain.update.seedNodes.push(randomSeed())
                 }
 
                 transaction.bridgechainUpdateAsset(config.bridgechain.update);
