@@ -300,9 +300,10 @@ const main = async (data) => {
                 let payments;
                 if (!config.multiPayments || config.multiPayments.length === 0) {
                     payments = [];
-                    for (let i = 0; i < testWallets.length; i++) {
+                    const count = Math.floor(Math.random() * (256 - 128 + 1) + 128);
+                    for (let i = 0; i < count; i++) {
                         payments.push({
-                            recipientId: testWallets[i].address,
+                            recipientId: testWallets[i % testWallets.length].address,
                             amount: "1"
                         });
                     }
