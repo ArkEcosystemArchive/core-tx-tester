@@ -184,9 +184,7 @@ const config = {
 }
 
 Managers.configManager.setFromPreset("devnet");
-
-// TODO: query milestones
-// Managers.configManager.getMilestone().aip11 = true;
+Managers.configManager.getMilestone().aip11 = true;
 
 const prompt = (question, callback) => {
     const stdin = process.stdin;
