@@ -12,16 +12,16 @@ const assert = require("assert");
  *
  * CTRL-C to exit.
  * Use config below to tweak script and make it deterministic.
- * 
+ *
  * TIPS:
- * 
+ *
  * Once V2 milestone is active:
  * If you get nonce errors, try restarting the script first. It caches the
  * nonces and always increments for each sent transaction even if it ends up getting rejected.
- * 
+ *
  * - At the bottom of this file are `testWallets` each with a balance of 475 DARK.
  * - If you encounter an error, just CTRL-C and restart.
- 
+
  * Types:
  * 0 - Transfer
  * 1 - SecondSignature
@@ -34,7 +34,7 @@ const assert = require("assert");
  * 8 - HTLC Lock
  * 9 - HTLC Claim
  * 10 - HTLC Refund
- * 
+ *
  * (These types are actually wrong and only used in this script to keep things simple)
  * 11 - BusinessRegistration
  * 12 - BusinessResignation
@@ -42,7 +42,7 @@ const assert = require("assert");
  * 14 - BridgechainRegistration
  * 15 - BridgechainResignation
  * 16 - BridgechainUpdate
- * 
+ *
  * Multisignature:
  * - First register a new multisig wallet (address is derived from the asset `participants` and `min`)
  * - The script will print the new multisig wallet address
@@ -167,7 +167,7 @@ const config = {
             bridgechainRepository: "https://github.com/ArkEcosystem/core",
         },
         update: {
-            // Each registration generates a unique id, 
+            // Each registration generates a unique id,
             // inspect wallet to get the bridgechainId or trust
             // this script to lookup the correct one for you.
             bridgechainId: undefined,
@@ -175,7 +175,7 @@ const config = {
             seedNodes: [],
         },
         resignation: {
-            // Each registration generates a unique id, 
+            // Each registration generates a unique id,
             // inspect wallet to get the bridgechainId or trust
             // this script to lookup the correct one for you.
             bridgechainId: undefined,
@@ -183,10 +183,18 @@ const config = {
     },
 }
 
-Managers.configManager.setFromPreset("devnet");
+const configureCrypto = async () => {
+    Managers.configManager.setFromPreset("devnet");
 
-// TODO: query milestones
-// Managers.configManager.getMilestone().aip11 = true;
+    try {
+        const response = await httpie.get(`http://${randomSeed()}:4003/api/blockchain`);
+
+        Managers.configManager.setHeight(response.body.data.block.height)
+    } catch (ex) {
+        console.log("configureCrypto: " + ex.message);
+        process.exit()
+    }
+}
 
 const prompt = (question, callback) => {
     const stdin = process.stdin;
@@ -204,8 +212,10 @@ const nonces = {}
 
 const main = async (data) => {
     try {
+        await configureCrypto();
+
         let [type, quantity] = data.split(" ");
-        
+
         type = +type;
         quantity = quantity || 1;
 
@@ -362,7 +372,7 @@ const main = async (data) => {
 
             let vendorField = config.vendorField.value;
             if (!vendorField && config.vendorField.random && (type === 0 || type === 6 || type === 8)) {
-                vendorField = Math.random().toString();        
+                vendorField = Math.random().toString();
             }
 
             if (vendorField) {
@@ -511,7 +521,7 @@ const postTransaction = async transactions => {
         }
 
         const response = await httpie.post(`http://${randomSeed()}:4003/api/v2/transactions`, {
-            headers: { "Content-Type": "application/json", port: 4003 },    
+            headers: { "Content-Type": "application/json", port: 4003 },
             body: {
                 transactions: transactions,
             },
