@@ -184,7 +184,7 @@ const config = {
 }
 
 const configureCrypto = async () => {
-            Managers.configManager.setFromPreset("devnet");
+    Managers.configManager.setFromPreset("devnet");
 
     try {
         const response = await httpie.get(`http://${randomSeed()}:4003/api/blockchain`);
