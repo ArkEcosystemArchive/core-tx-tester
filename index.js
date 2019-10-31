@@ -269,7 +269,7 @@ const main = async (data) => {
                 transaction.signatureAsset(secondPassphrase);
 
             } else if (type === Enums.TransactionType.DelegateRegistration) {
-                const username = config.delegate || `delegate.${senderKeys.publicKey.slice(0, 10)}`;
+                const username = config.delegateName || `delegate.${senderKeys.publicKey.slice(0, 10)}`;
                 transaction.usernameAsset(username);
 
             } else if (type === Enums.TransactionType.Vote) {
