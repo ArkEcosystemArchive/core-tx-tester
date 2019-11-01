@@ -111,7 +111,7 @@ const config = {
     },
     // ipfs
     ipfs: "QmYSK2JyM3RyDyB52caZCTKFR3HKniEcMnNJYdk8DQ6KKB",
-    // multi payment defaults to 128-256 payments to specific recipients
+    // multi payment defaults to 64-128 payments to specific recipients
     multiPayments: [
         // { recipientId: "recipient2", amount: "1"},
         // { recipientId: "recipient1", amount: "1"},
@@ -300,9 +300,10 @@ const main = async (data) => {
                 let payments;
                 if (!config.multiPayments || config.multiPayments.length === 0) {
                     payments = [];
-                    for (let i = 0; i < testWallets.length; i++) {
+                    const count = Math.floor(Math.random() * (128 - 64 + 1) + 64);
+                    for (let i = 0; i < count; i++) {
                         payments.push({
-                            recipientId: testWallets[i].address,
+                            recipientId: testWallets[i % testWallets.length].address,
                             amount: "1"
                         });
                     }
