@@ -52,6 +52,8 @@ const assert = require("assert");
  * - All outgoing transactions will now be multi signed with the configured `passphrases`
  * - Remove passphrases and change indexes to test `min` etc.
  */
+const randomName = (type) => `${type}-${Math.round(Math.random() * 1000000000000)}`
+
 const config = {
     // log sent transaction payload
     verbose: true,
@@ -143,21 +145,21 @@ const config = {
     },
     business: {
         registration: {
-            name: `Devnet ${Math.random()}`,
-            website: "dexplorer.ark.io",
+            name: randomName('business'),
+            website: "http://dexplorer.ark.io",
             vat: undefined, // NOTE: will be renamed soon
             repository: undefined,
         },
         update: {
-            name: `Devnet ${Math.random()}`,
-            website: "dexplorer.ark.io",
+            name: randomName('business'),
+            website: "http://dexplorer.ark.io",
             vat: undefined, // NOTE: will be renamed soon
             repository: undefined,
         },
     },
     bridgechain: {
         registration: {
-            name: `Bridgechain ${Math.random()}`,
+            name: randomName('bridgechain'),
             seedNodes: [
                 "1.1.1.1",
                 "1.2.3.4",
