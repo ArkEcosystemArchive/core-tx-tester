@@ -324,8 +324,10 @@ const main = async (data) => {
                 transaction.amount(config.amount);
 
                 if (config.htlc.lock.expiration.type === Enums.HtlcLockExpirationType.EpochTimestamp) {
-                    const networktime =  await retrieveNetworktime();
-                    config.htlc.lock.expiration.value += networktime;
+                    const networktime = await retrieveNetworktime();
+                    if (config.htlc.lock.expiration.value < networktime) {
+                        config.htlc.lock.expiration.value += networktime;
+                    }
                 }
 
                 transaction.htlcLockAsset(config.htlc.lock);
