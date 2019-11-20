@@ -167,6 +167,9 @@ const config = {
             genesisHash: Crypto.HashAlgorithms.sha256("my genesis hash").toString("hex"),
             // default is empty
             bridgechainRepository: "https://github.com/ArkEcosystem/core",
+            ports: {
+                "@arkecosystem/core-api": 4003,
+            },
         },
         update: {
             // Each registration generates a unique id,
