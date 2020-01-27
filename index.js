@@ -360,7 +360,7 @@ const main = async (data) => {
                 if (!config.bridgechain.resignation.bridgechainId) {
                     config.bridgechain.resignation.bridgechainId = await retrieveBridgechainId(senderKeys.publicKey)
                 }
-                transaction.businessResignationAsset(config.bridgechain.resignation.bridgechainId);
+                transaction.bridgechainResignationAsset(config.bridgechain.resignation.bridgechainId);
 
             } else if (type === 16 && Managers.configManager.getMilestone().aip11) { // BridgechainUpdate
                 if (!config.bridgechain.update.bridgechainId) {
@@ -504,7 +504,7 @@ const retrieveBridgechainId = async (sender) => {
     }
 
     const wallet = await retrieveSenderWallet(Identities.Address.fromPublicKey(sender));
-    return Object.keys(wallet.debug.business.bridgechains).reverse()[0]
+    return Object.keys(wallet.attributes.business.bridgechains).reverse()[0]
 }
 
 const multiSignatureAddress = () => {
