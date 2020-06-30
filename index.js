@@ -1,5 +1,7 @@
 const { Crypto, Enums, Utils, Managers, Transactions, Identities } = require("@arkecosystem/crypto");
 
+const MagistrateCrypto = require("@arkecosystem/core-magistrate-crypto");
+
 const { httpie } = require("@arkecosystem/core-utils");
 const assert = require("assert");
 
@@ -7,6 +9,18 @@ const assert = require("assert");
  * $ node index.js
  * Ѧ 0      ENTER - send a transfer
  * Ѧ 0 10   ENTER - send 10 transfers
+ * 
+ * Specifics for entity transactions :
+ * $ node index.js
+ * 
+ * Ѧ 11 1 business register my_business QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ * ENTER - send a register entity for business with name and ipfs hash
+ * 
+ * Ѧ 11 1 plugin-core update 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ * ENTER - send a update entity for plugin-core with associated registration id and updated ipfs hash
+ * 
+ * Ѧ 11 1 plugin-desktop resign 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f
+ * ENTER - send a resign entity for plugin-core with associated registration id
  *
  * CTRL-C to exit.
  * Use config below to tweak script and make it deterministic.
@@ -32,6 +46,9 @@ const assert = require("assert");
  * 8 - HTLC Lock
  * 9 - HTLC Claim
  * 10 - HTLC Refund
+ *
+ * (These types are actually wrong and only used in this script to keep things simple)
+ * 11 - Entity
  *
  * Multisignature:
  * - First register a new multisig wallet (address is derived from the asset `participants` and `min`)
@@ -164,7 +181,8 @@ const main = async (data) => {
     try {
         await configureCrypto();
 
-        let [type, quantity] = data.split(" ");
+        const splitInput = data.split(" ");
+        let [type, quantity] = splitInput;
 
         type = +type;
         quantity = quantity || 1;
@@ -291,6 +309,36 @@ const main = async (data) => {
                 const lockTransactionId = refund.lockTransactionId || ((await retrieveTransaction(senderWallet.publicKey, 8))[0].id)
 
                 transaction.htlcRefundAsset({ lockTransactionId });
+            } else if (type === 11 && Managers.configManager.getMilestone().aip11) { // Entity
+                const EntityType = MagistrateCrypto.Enums.EntityType;
+                const EntitySubType = MagistrateCrypto.Enums.EntitySubType;
+                const mapTypeAndSubtype = {
+                    business: { type: EntityType.Business, subType: EntitySubType.None },
+                    bridgechain: { type: EntityType.Bridgechain, subType: EntitySubType.None },
+                    developer: { type: EntityType.Developer, subType: EntitySubType.None },
+                    "plugin-core": { type: EntityType.Plugin, subType: EntitySubType.PluginCore },
+                    "plugin-desktop": { type: EntityType.Plugin, subType: EntitySubType.PluginDesktop },
+                };
+                const mapAction = {
+                    register: { action: MagistrateCrypto.Enums.EntityAction.Register },
+                    update: { action: MagistrateCrypto.Enums.EntityAction.Update },
+                    resign: { action: MagistrateCrypto.Enums.EntityAction.Resign },
+                };
+                const entityAsset = {
+                    ...mapTypeAndSubtype[splitInput[2]],
+                    ...mapAction[splitInput[3]],
+                    data: {}
+                };
+                if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Register) {
+                    entityAsset.data.name = splitInput[4];
+                    entityAsset.data.ipfsData = splitInput[5];
+                } else if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Update) {
+                    entityAsset.registrationId = splitInput[4];
+                    entityAsset.data.ipfsData = splitInput[5];
+                } else if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Resign) {
+                    entityAsset.registrationId = splitInput[4];
+                }
+                transaction.asset(entityAsset);
             } else {
                 throw new Error("Version 2 not supported.");
             }
@@ -465,6 +513,8 @@ const randomSeed = () => {
 
 prompt(`Ѧ `, main);
 
+Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.EntityTransaction);
+
 const builders = {
     0: Transactions.BuilderFactory.transfer,
     1: Transactions.BuilderFactory.secondSignature,
@@ -477,6 +527,12 @@ const builders = {
     8: Transactions.BuilderFactory.htlcLock,
     9: Transactions.BuilderFactory.htlcClaim,
     10: Transactions.BuilderFactory.htlcRefund,
+
+    // TECHNICALLY, the AIP103 types are in typeGroup 2
+    // and range from type 0 - 5. But to keep things simple we simply
+    // pretend they follow up on HTLC.
+
+    11: () => new MagistrateCrypto.Builders.EntityBuilder(),
 }
 
 const seeds = [
