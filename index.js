@@ -9,6 +9,18 @@ const assert = require("assert");
  * $ node index.js
  * Ѧ 0      ENTER - send a transfer
  * Ѧ 0 10   ENTER - send 10 transfers
+ * 
+ * Specifics for entity transactions :
+ * $ node index.js
+ * 
+ * Ѧ 17 1 business register my_business QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ * ENTER - send a register entity for business with name and ipfs hash
+ * 
+ * Ѧ 17 1 plugin-core update 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ * ENTER - send a update entity for plugin-core with associated registration id and updated ipfs hash
+ * 
+ * Ѧ 17 1 plugin-desktop resign 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f
+ * ENTER - send a resign entity for plugin-core with associated registration id
  *
  * CTRL-C to exit.
  * Use config below to tweak script and make it deterministic.
@@ -42,6 +54,7 @@ const assert = require("assert");
  * 14 - BridgechainRegistration
  * 15 - BridgechainResignation
  * 16 - BridgechainUpdate
+ * 17 - Entity
  *
  * Multisignature:
  * - First register a new multisig wallet (address is derived from the asset `participants` and `min`)
@@ -219,7 +232,8 @@ const main = async (data) => {
     try {
         await configureCrypto();
 
-        let [type, quantity] = data.split(" ");
+        const splitInput = data.split(" ");
+        let [type, quantity] = splitInput;
 
         type = +type;
         quantity = quantity || 1;
@@ -372,6 +386,36 @@ const main = async (data) => {
                 }
 
                 transaction.bridgechainUpdateAsset(config.bridgechain.update);
+            } else if (type === 17 && Managers.configManager.getMilestone().aip11) { // Entity
+                const EntityType = MagistrateCrypto.Enums.EntityType;
+                const EntitySubType = MagistrateCrypto.Enums.EntitySubType;
+                const mapTypeAndSubtype = {
+                    business: { type: EntityType.Business, subType: EntitySubType.None },
+                    bridgechain: { type: EntityType.Bridgechain, subType: EntitySubType.None },
+                    developer: { type: EntityType.Developer, subType: EntitySubType.None },
+                    "plugin-core": { type: EntityType.Plugin, subType: EntitySubType.PluginCore },
+                    "plugin-desktop": { type: EntityType.Plugin, subType: EntitySubType.PluginDesktop },
+                };
+                const mapAction = {
+                    register: { action: MagistrateCrypto.Enums.EntityAction.Register },
+                    update: { action: MagistrateCrypto.Enums.EntityAction.Update },
+                    resign: { action: MagistrateCrypto.Enums.EntityAction.Resign },
+                };
+                const entityAsset = {
+                    ...mapTypeAndSubtype[splitInput[2]],
+                    ...mapAction[splitInput[3]],
+                    data: {}
+                };
+                if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Register) {
+                    entityAsset.data.name = splitInput[4];
+                    entityAsset.data.ipfsData = splitInput[5];
+                } else if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Update) {
+                    entityAsset.registrationId = splitInput[4];
+                    entityAsset.data.ipfsData = splitInput[5];
+                } else if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Resign) {
+                    entityAsset.registrationId = splitInput[4];
+                }
+                transaction.asset(entityAsset);
             } else {
                 throw new Error("Version 2 not supported.");
             }
@@ -562,6 +606,7 @@ Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transa
 Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BridgechainRegistrationTransaction);
 Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BridgechainResignationTransaction);
 Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BridgechainUpdateTransaction);
+Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.EntityTransaction);
 
 const builders = {
     0: Transactions.BuilderFactory.transfer,
@@ -586,6 +631,7 @@ const builders = {
     14: () => new MagistrateCrypto.Builders.BridgechainRegistrationBuilder(),
     15: () => new MagistrateCrypto.Builders.BridgechainResignationBuilder(),
     16: () => new MagistrateCrypto.Builders.BridgechainUpdateBuilder(),
+    17: () => new MagistrateCrypto.Builders.EntityBuilder(),
 }
 
 const seeds = [
