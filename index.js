@@ -13,13 +13,13 @@ const assert = require("assert");
  * Specifics for entity transactions :
  * $ node index.js
  * 
- * Ѧ 17 1 business register my_business QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ * Ѧ 11 1 business register my_business QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
  * ENTER - send a register entity for business with name and ipfs hash
  * 
- * Ѧ 17 1 plugin-core update 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ * Ѧ 11 1 plugin-core update 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
  * ENTER - send a update entity for plugin-core with associated registration id and updated ipfs hash
  * 
- * Ѧ 17 1 plugin-desktop resign 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f
+ * Ѧ 11 1 plugin-desktop resign 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f
  * ENTER - send a resign entity for plugin-core with associated registration id
  *
  * CTRL-C to exit.
@@ -48,13 +48,7 @@ const assert = require("assert");
  * 10 - HTLC Refund
  *
  * (These types are actually wrong and only used in this script to keep things simple)
- * 11 - BusinessRegistration
- * 12 - BusinessResignation
- * 13 - BusinessUpdate
- * 14 - BridgechainRegistration
- * 15 - BridgechainResignation
- * 16 - BridgechainUpdate
- * 17 - Entity
+ * 11 - Entity
  *
  * Multisignature:
  * - First register a new multisig wallet (address is derived from the asset `participants` and `min`)
@@ -65,8 +59,6 @@ const assert = require("assert");
  * - All outgoing transactions will now be multi signed with the configured `passphrases`
  * - Remove passphrases and change indexes to test `min` etc.
  */
-const randomName = (type) => `${type}-${Math.round(Math.random() * 1000000000000)}`
-
 const config = {
     // log sent transaction payload
     verbose: true,
@@ -154,49 +146,6 @@ const config = {
         refund: {
             // by default it tries to retrieve the last lock transaction id from given sender via API
             lockTransactionId: undefined,
-        }
-    },
-    business: {
-        registration: {
-            name: randomName('business'),
-            website: "http://dexplorer.ark.io",
-            vat: undefined, // NOTE: will be renamed soon
-            repository: undefined,
-        },
-        update: {
-            name: randomName('business'),
-            website: "http://dexplorer.ark.io",
-            vat: undefined, // NOTE: will be renamed soon
-            repository: undefined,
-        },
-    },
-    bridgechain: {
-        registration: {
-            name: randomName('bridgechain'),
-            seedNodes: [
-                "1.1.1.1",
-                "1.2.3.4",
-            ],
-            genesisHash: Crypto.HashAlgorithms.sha256("my genesis hash").toString("hex"),
-            // default is empty
-            bridgechainRepository: "https://github.com/ArkEcosystem/core",
-            ports: {
-                "@arkecosystem/core-api": 4003,
-            },
-        },
-        update: {
-            // Each registration generates a unique id,
-            // inspect wallet to get the bridgechainId or trust
-            // this script to lookup the correct one for you.
-            bridgechainId: undefined,
-            // by defaults creates random seeds to replace the existing ones.
-            seedNodes: [],
-        },
-        resignation: {
-            // Each registration generates a unique id,
-            // inspect wallet to get the bridgechainId or trust
-            // this script to lookup the correct one for you.
-            bridgechainId: undefined,
         }
     },
 }
@@ -360,33 +309,7 @@ const main = async (data) => {
                 const lockTransactionId = refund.lockTransactionId || ((await retrieveTransaction(senderWallet.publicKey, 8))[0].id)
 
                 transaction.htlcRefundAsset({ lockTransactionId });
-            } else if (type === 11 && Managers.configManager.getMilestone().aip11) { // BusinessRegistration
-                transaction.businessRegistrationAsset(config.business.registration);
-
-            } else if (type == 12 && Managers.configManager.getMilestone().aip11) { // BusinessResignation
-            } else if (type == 13 && Managers.configManager.getMilestone().aip11) { // BusinessUpdate
-                transaction.businessUpdateAsset(config.business.update);
-
-            } else if (type == 14 && Managers.configManager.getMilestone().aip11) { // BridgechainRegistration
-                transaction.bridgechainRegistrationAsset(config.bridgechain.registration);
-
-            } else if (type == 15 && Managers.configManager.getMilestone().aip11) { // BridgechainResignation
-                if (!config.bridgechain.resignation.bridgechainId) {
-                    config.bridgechain.resignation.bridgechainId = await retrieveBridgechainId(senderKeys.publicKey)
-                }
-                transaction.bridgechainResignationAsset(config.bridgechain.resignation.bridgechainId);
-
-            } else if (type === 16 && Managers.configManager.getMilestone().aip11) { // BridgechainUpdate
-                if (!config.bridgechain.update.bridgechainId) {
-                    config.bridgechain.update.bridgechainId = await retrieveBridgechainId(senderKeys.publicKey)
-                }
-
-                if (!config.bridgechain.update.seedNodes.length) {
-                    config.bridgechain.update.seedNodes.push(randomSeed())
-                }
-
-                transaction.bridgechainUpdateAsset(config.bridgechain.update);
-            } else if (type === 17 && Managers.configManager.getMilestone().aip11) { // Entity
+            } else if (type === 11 && Managers.configManager.getMilestone().aip11) { // Entity
                 const EntityType = MagistrateCrypto.Enums.EntityType;
                 const EntitySubType = MagistrateCrypto.Enums.EntitySubType;
                 const mapTypeAndSubtype = {
@@ -542,15 +465,6 @@ const retrieveNetworktime = async () => {
 
 }
 
-const retrieveBridgechainId = async (sender) => {
-    if (config.multiSignature.enabled) {
-        sender = multiSignatureAddress().publicKey
-    }
-
-    const wallet = await retrieveSenderWallet(Identities.Address.fromPublicKey(sender));
-    return Object.keys(wallet.attributes.business.bridgechains).reverse()[0]
-}
-
 const multiSignatureAddress = () => {
     return {
         publicKey: Identities.PublicKey.fromMultiSignatureAsset({
@@ -599,13 +513,6 @@ const randomSeed = () => {
 
 prompt(`Ѧ `, main);
 
-
-Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BusinessRegistrationTransaction);
-Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BusinessResignationTransaction);
-Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BusinessUpdateTransaction);
-Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BridgechainRegistrationTransaction);
-Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BridgechainResignationTransaction);
-Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.BridgechainUpdateTransaction);
 Transactions.TransactionRegistry.registerTransactionType(MagistrateCrypto.Transactions.EntityTransaction);
 
 const builders = {
@@ -625,13 +532,7 @@ const builders = {
     // and range from type 0 - 5. But to keep things simple we simply
     // pretend they follow up on HTLC.
 
-    11: () => new MagistrateCrypto.Builders.BusinessRegistrationBuilder(),
-    12: () => new MagistrateCrypto.Builders.BusinessResignationBuilder(),
-    13: () => new MagistrateCrypto.Builders.BusinessUpdateBuilder(),
-    14: () => new MagistrateCrypto.Builders.BridgechainRegistrationBuilder(),
-    15: () => new MagistrateCrypto.Builders.BridgechainResignationBuilder(),
-    16: () => new MagistrateCrypto.Builders.BridgechainUpdateBuilder(),
-    17: () => new MagistrateCrypto.Builders.EntityBuilder(),
+    11: () => new MagistrateCrypto.Builders.EntityBuilder(),
 }
 
 const seeds = [
