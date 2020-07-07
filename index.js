@@ -318,6 +318,7 @@ const main = async (data) => {
                     developer: { type: EntityType.Developer, subType: EntitySubType.None },
                     "plugin-core": { type: EntityType.Plugin, subType: EntitySubType.PluginCore },
                     "plugin-desktop": { type: EntityType.Plugin, subType: EntitySubType.PluginDesktop },
+                    delegate: { type: EntityType.Delegate, subType: EntitySubType.None },
                 };
                 const mapAction = {
                     register: { action: MagistrateCrypto.Enums.EntityAction.Register },
