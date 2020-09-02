@@ -316,8 +316,8 @@ const main = async (data) => {
                     resign: { action: MagistrateCrypto.Enums.EntityAction.Resign },
                 };
                 const entityAsset = {
-                    type: splitInput[2],
-                    subType: splitInput[3],
+                    type: parseInt(splitInput[2]),
+                    subType: parseInt(splitInput[3]),
                     ...mapAction[splitInput[4]],
                     data: {}
                 };
