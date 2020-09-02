@@ -9,17 +9,17 @@ const assert = require("assert");
  * $ node index.js
  * Ѧ 0      ENTER - send a transfer
  * Ѧ 0 10   ENTER - send 10 transfers
- * 
+ *
  * Specifics for entity transactions :
  * $ node index.js
- * 
- * Ѧ 11 1 business register my_business QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ *
+ * Ѧ 11 1 1 1 register my_business QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
  * ENTER - send a register entity for business with name and ipfs hash
- * 
- * Ѧ 11 1 plugin-core update 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
+ *
+ * Ѧ 11 1 1 1 update 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f QmV1n5F9PuBE2ovW9jVfFpxyvWZxYHjSdfLrYL2nDcb1gW
  * ENTER - send a update entity for plugin-core with associated registration id and updated ipfs hash
- * 
- * Ѧ 11 1 plugin-desktop resign 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f
+ *
+ * Ѧ 11 1 1 1 resign 521b65c4f1f08716f9cc70f3a0c4d1ea5899f35a122d238b2114eed8161c0d5f
  * ENTER - send a resign entity for plugin-core with associated registration id
  *
  * CTRL-C to exit.
@@ -309,35 +309,26 @@ const main = async (data) => {
                 const lockTransactionId = refund.lockTransactionId || ((await retrieveTransaction(senderWallet.publicKey, 8))[0].id)
 
                 transaction.htlcRefundAsset({ lockTransactionId });
-            } else if (type === 11 && Managers.configManager.getMilestone().aip11) { // Entity
-                const EntityType = MagistrateCrypto.Enums.EntityType;
-                const EntitySubType = MagistrateCrypto.Enums.EntitySubType;
-                const mapTypeAndSubtype = {
-                    business: { type: EntityType.Business, subType: EntitySubType.None },
-                    bridgechain: { type: EntityType.Bridgechain, subType: EntitySubType.None },
-                    developer: { type: EntityType.Developer, subType: EntitySubType.None },
-                    "plugin-core": { type: EntityType.Plugin, subType: EntitySubType.PluginCore },
-                    "plugin-desktop": { type: EntityType.Plugin, subType: EntitySubType.PluginDesktop },
-                    delegate: { type: EntityType.Delegate, subType: EntitySubType.None },
-                };
+            } else if (type === 11 && Managers.configManager.getMilestone().aip11) {
                 const mapAction = {
                     register: { action: MagistrateCrypto.Enums.EntityAction.Register },
                     update: { action: MagistrateCrypto.Enums.EntityAction.Update },
                     resign: { action: MagistrateCrypto.Enums.EntityAction.Resign },
                 };
                 const entityAsset = {
-                    ...mapTypeAndSubtype[splitInput[2]],
-                    ...mapAction[splitInput[3]],
+                    type: parseInt(splitInput[2]),
+                    subType: parseInt(splitInput[3]),
+                    ...mapAction[splitInput[4]],
                     data: {}
                 };
                 if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Register) {
-                    entityAsset.data.name = splitInput[4];
-                    entityAsset.data.ipfsData = splitInput[5];
+                    entityAsset.data.name = splitInput[5];
+                    entityAsset.data.ipfsData = splitInput[6];
                 } else if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Update) {
-                    entityAsset.registrationId = splitInput[4];
-                    entityAsset.data.ipfsData = splitInput[5];
+                    entityAsset.registrationId = splitInput[5];
+                    entityAsset.data.ipfsData = splitInput[6];
                 } else if (entityAsset.action === MagistrateCrypto.Enums.EntityAction.Resign) {
-                    entityAsset.registrationId = splitInput[4];
+                    entityAsset.registrationId = splitInput[5];
                 }
                 transaction.asset(entityAsset);
             } else {

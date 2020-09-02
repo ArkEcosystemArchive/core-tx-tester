@@ -7,9 +7,9 @@
         "dev": "nodemon ./index.js"
     },
     "dependencies": {
-        "@arkecosystem/crypto": "^2.7.0-next.1",
-        "@arkecosystem/core-utils": "^2.7.0-next.1",
-        "@arkecosystem/core-magistrate-crypto": "^2.7.0-next.1"
+        "@arkecosystem/crypto": "^2.7.0-next.6",
+        "@arkecosystem/core-utils": "^2.7.0-next.6",
+        "@arkecosystem/core-magistrate-crypto": "^2.7.0-next.6"
     },
     "devDependencies": {
         "nodemon": "^2.0.0"
