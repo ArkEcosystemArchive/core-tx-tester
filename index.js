@@ -476,11 +476,12 @@ const postTransaction = async transactions => {
             return;
         }
 
-        const response = await httpie.post(`http://${randomSeed()}:4003/api/v2/transactions`, {
+        const response = await httpie.post(`http://${randomSeed()}:4003/api/transactions`, {
             headers: { "Content-Type": "application/json", port: 4003 },
             body: {
                 transactions: transactions,
             },
+            timeout: 5000,
         });
 
         if (response.status !== 200 || response.body.errors) {
